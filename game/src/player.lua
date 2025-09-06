@@ -36,18 +36,17 @@ function Player:moveColliding(dt)
 		self.onGround = true
 	end
 
-    self:changeVelocityByCollisionNormal(col.normal.x, col.normal.y, 0)
+    --self:changeVelocityByCollisionNormal(col.normal.x, col.normal.y, 0)
     -- self:checkIfOnGround(col.normal.y)
   end
-
   self.x, self.y = next_x, next_y
 end
 
 function Player:changeVelocityByGravity(dt)
 	if self.onGround then
-		self.vy = 0
-		self.isJumping = false
-	else
+		
+		
+	elseif not self.onGround then
 		self.vy = self.vy + GravityAccel * dt
 	end
   
@@ -74,7 +73,8 @@ function Player:changeVelocityByKeys(dt)
   if love.keyboard.isDown("w") and self.onGround then
 	print("jump")
 	vy = -self.jumpVelocity
-    self.isJumping = true
+    self.onGround  = false
+	self.isJumping = true
   end
 
   self.vx, self.vy = vx, vy
