@@ -13,8 +13,8 @@ function Player:initialize(world, x,y)
   Entity.initialize(self, world, x, y, width, height);
   self.onGround = false
   self.isJumping = false
-  self.jumpVelocity = 5
-  self.brakeAccel = 50
+  self.jumpVelocity = 3
+  self.brakeAccel = 20
   self.speed = 10
   self.tilemap = love.graphics.newImage('assets/tilemap-characters.png')
 
@@ -44,17 +44,12 @@ end
 
 function Player:changeVelocityByGravity(dt)
 	if self.onGround then
-		
-		
 	elseif not self.onGround then
 		self.vy = self.vy + GravityAccel * dt
 	end
-  
-  print(self.vy)
 end
 
 function Player:changeVelocityByKeys(dt)
-
   local vx, vy = self.vx, self.vy
 
   if love.keyboard.isDown("a") then

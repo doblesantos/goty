@@ -3,7 +3,7 @@
 -- pixels per second^2
 local class = require 'lib/middleclass'
 local Entity = class('Entity')
- GravityAccel  = 10 
+ GravityAccel  = 9 
 function Entity:initialize(world, x, y, width, height)
     self.x = x
     self.y = y
