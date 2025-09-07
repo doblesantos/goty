@@ -1,5 +1,6 @@
 require "lib/middleclass"
 Push = require "lib/Push"
+GameOver=require "src/game-over"
 local gameWidth, gameHeight = 540, 270
 
 local windowWidth, windowHeight = love.window.getDesktopDimensions()
@@ -20,11 +21,15 @@ function love.load()
 end
 
 function love.update(dt)
-  map:update(dt,0,0,gameWidth,gameHeight)
+    if not map:isGameOver() then
+	  map:update(dt,0,0,gameWidth,gameHeight)
+	else 
+	  GameOver.GameOverUpdate()
+	end 
 
-  if love.keyboard.isDown("escape") then
-	  love.event.quit()
-  end
+	if love.keyboard.isDown("escape") then
+		love.event.quit()
+	end
 end
 
 function love.resize(w, h)
@@ -33,8 +38,11 @@ end
 
 function love.draw(dt)
 	Push:apply("start")
-
-	map:draw(dt,0,0,gameWidth,gameHeight);
-
+    if map:isGameOver() then
+		GameOver.GameOverDraw()
+	else 
+		map:draw(dt, 0, 0, gameWidth, gameHeight);
+	end
+	
 	Push:apply("end")
 end
