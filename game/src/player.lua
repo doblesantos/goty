@@ -39,26 +39,33 @@ function Player:moveColliding(dt)
     local col = cols[i]
 	local isTouchingHead = col.item.y > col.other.y
 
-	
-	if(col.other.type == 'mortalBox') then
+    local sideCol = col.normal.x == 1 or col.normal.x == -1
+
+
+	if (col.other.type == 'mortalBox') then
 		self.isDead = true
 		map:incrementDeaths()
 	end
 
-	if(col.other.type == 'ground' and self.isJumping and not isTouchingHead) then
+	if(col.other.type == 'ground' and self.isJumping and not isTouchingHead and not sideCol) then
 		self.isJumping = false
-		if CameraY < self.y and self.old_y ~= next_y then
+		--print("antes de mover camara", self.old_y, next_y, self.y)
+
+		if  next_y < self.old_y  and MiddleCamY < next_y then
+		  --print("victor camaras")
 	      map:moveCamera()
 	      map:appendRandTileRow()
 	      map:moveMortalBox()
 		  map:incrementScore()
+		  self.onGround = true
+	      self.old_y = self.y
 	    end
 	elseif(col.other.type == 'ground' and not isTouchingHead) then
 		self.onGround = true
 	    self.old_y = self.y
 	end
 
-    --self:changeVelocityByCollisionNormal(col.normal.x, col.normal.y, 0)
+    -- self:changeVelocityByCollisionNormal(col.normal.x, col.normal.y, 0)
     -- self:checkIfOnGround(col.normal.y)
   end
   self.x, self.y = next_x, next_y

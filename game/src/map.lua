@@ -28,11 +28,8 @@ local quadInfo = {
 
 
 NewTopTiles = {
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', 'b1A', 'b1B', 'b1C', ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,'b1A','b1B','b1C',' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 }
 
 function Map:initialize()
@@ -47,8 +44,7 @@ function Map:resetMap()
     TileW, TileH = 18,18
 	BgTileW, BgTileH = 24,24
 	TileTable = {
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' ,' ', ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' ,' ', ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' ,'b1S', ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
@@ -65,8 +61,14 @@ function Map:resetMap()
 		{' '  ,' '  ,' '  , ' ' ,' '  ,' '  ,' '  ,'b1S',' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
 		{'p1A','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C',' '  ,' '  ,'p1A','p1B','p1C', ' ', ' ', 'p1S' , ' ' , ' '  ,'p1A' , 'p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C'},
 	}
+
+	OldTableSize = #TileTable
+    OldRandTileIndex = nil
+
     CameraX,CameraY = 0,0
     CamYstep = 15
+
+	MiddleCamY = gameHeight/2
 
 	local tilesetW, tilesetH = self.tileset:getWidth(), self.tileset:getHeight()
 	Quads = {}
@@ -111,21 +113,31 @@ function Map:buildTileMap()
 end
 
 function Map:moveCamera()
+    --print(self.player.old_y, self.player.y)
+	CamYstep = (self.player.old_y - self.player.y)
 	CameraY = CameraY + CamYstep
 end
 
 function Map:appendRandTileRow()
-	    local newTileTableRow = NewTopTiles[math.random(1, #NewTopTiles)]
-		local rowIndex = #TileTable + 1
+	    local newRandTileIndex = math.random(1, #NewTopTiles)
+
+        while newRandTileIndex == OldRandTileIndex do
+			newRandTileIndex = math.random(1, #NewTopTiles)
+		end
+
+		OldRandTileIndex = newRandTileIndex
+
+	    local newTileTableRow = NewTopTiles[newRandTileIndex]
 
 		-- add to table
 		table.insert(TileTable,1, newTileTableRow)
-	
+
         -- add to world phisically
 		for columnIndex = 1, #newTileTableRow, 1 do
-		  local x,y = (columnIndex-1)*TileW, (-rowIndex) * TileH  
+		  local x,y = (columnIndex-1)*TileW, (OldTableSize - #TileTable ) * TileH  
 		  local quadID = newTileTableRow[columnIndex]
 		  if(quadID ~= ' ') then
+			 print("new tile",x, y, #TileTable, OldTableSize)
 		     Tile:new(self.world, x, y, TileW, TileH, Quads[quadID], 'ground', self.tileset)
 		  end
 		end
@@ -143,6 +155,8 @@ function Map:moveMortalBox()
   self.world:update(self.leftWorldLimit , 0, self.leftWorldLimit.y)
   self.world:update(self.rightWorldLimit, gameWidth-2, self.rightWorldLimit.y)
   self.world:update(self.topWorldLimit, 0, self.topWorldLimit.y)
+
+  MiddleCamY = MiddleCamY - CamYstep
 end
 
 function Map:isGameOver()
@@ -171,7 +185,7 @@ function Map:draw(drawDebug, l,t,w,h)
   --if drawDebug then bump_debug.draw(self.world, l,t,w,h) end
     
   -- camera motion
-	love.graphics.translate(0, CameraY)
+	love.graphics.translate(0,  CameraY)
 
 
    --- draw visible objects
@@ -190,6 +204,9 @@ function Map:draw(drawDebug, l,t,w,h)
 
   scoreText:add( {{1,1,1}, "Score: " .. map.score }, 0, 0)    
   love.graphics.draw(scoreText, 450, t-CameraY) 
+
+
+  love.graphics.rectangle("fill",0, MiddleCamY, gameWidth,2);
 end
 
 
