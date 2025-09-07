@@ -11,6 +11,7 @@ function Player:initialize(world, x,y)
   local height = 24
 
   Entity.initialize(self, world, x, y, width, height);
+  
   self.onGround = false
   self.isJumping = false
   self.jumpVelocity = 3
@@ -19,7 +20,7 @@ function Player:initialize(world, x,y)
   self.topXSpeed = 1;
   self.tilemap = love.graphics.newImage('assets/tilemap-characters.png')
   self.isDead = false
-  self.quad = love.graphics.newQuad(0, 0, self.width, self.height, self.tilemap:getWidth(), self.tilemap:getHeight())
+  self.quad = love.graphics.newQuad(0, 0, width, height, self.tilemap:getWidth(), self.tilemap:getHeight())
 
   self.jumpSFX = love.audio.newSource("assets/jump.wav", "static")
   self.stepSFX = love.audio.newSource("assets/step.wav", "static")
@@ -36,19 +37,23 @@ function Player:moveColliding(dt)
 
   for i=1, len do
     local col = cols[i]
+	local isTouchingHead = col.item.y > col.other.y
 
+	
 	if(col.other.type == 'mortalBox') then
 		self.isDead = true
+		map:incrementDeaths()
 	end
 
-	if(col.other.type == 'ground' and self.isJumping) then
+	if(col.other.type == 'ground' and self.isJumping and not isTouchingHead) then
 		self.isJumping = false
 		if CameraY < self.y and self.old_y ~= next_y then
 	      map:moveCamera()
 	      map:appendRandTileRow()
 	      map:moveMortalBox()
+		  map:incrementScore()
 	    end
-	elseif(col.other.type == 'ground') then
+	elseif(col.other.type == 'ground' and not isTouchingHead) then
 		self.onGround = true
 	    self.old_y = self.y
 	end
@@ -103,6 +108,7 @@ function Player:update(dt)
 end
 
 function Player:draw()
+	self.class.super.draw(self)
 	love.graphics.draw(self.tilemap, self.quad, self.x, self.y)
 end
 

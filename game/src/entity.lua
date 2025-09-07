@@ -18,7 +18,7 @@ function Entity.update()
 end
 
 function Entity:draw()
-   	love.graphics.setColor(1, 0, 0, 1)
+   	love.graphics.setColor(1, 0, 0, 0.3)
 	love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	love.graphics.setColor(1, 1, 1, 1)
 end

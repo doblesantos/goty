@@ -1,7 +1,7 @@
 require "lib/middleclass"
 Push = require "lib/Push"
 GameOver=require "src/game-over"
-local gameWidth, gameHeight = 540, 270
+gameWidth, gameHeight = 540, 270
 
 local windowWidth, windowHeight = love.window.getDesktopDimensions()
 windowWidth, windowHeight = windowWidth*.5, windowHeight*.5
@@ -38,9 +38,13 @@ end
 
 function love.draw(dt)
 	Push:apply("start")
+    
+   
     if map:isGameOver() then
+		love.graphics.clear(0.2,0.2,0.2,1);
 		GameOver.GameOverDraw()
 	else 
+		love.graphics.clear(129/255,210/255,235/255,1);
 		map:draw(dt, 0, 0, gameWidth, gameHeight);
 	end
 	

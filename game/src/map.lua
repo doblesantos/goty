@@ -26,10 +26,6 @@ local quadInfo = {
     { 'b1C', 180, 36 },  --block brown long part C
 }
 
-local bgQuadInfo = {
-	{ 'bg1',   0,  0},
-}
-
 
 NewTopTiles = {
 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
@@ -41,12 +37,13 @@ NewTopTiles = {
 
 function Map:initialize()
 	self.tileset = love.graphics.newImage('assets/tilemap.png')
-	self.bgTileset = love.graphics.newImage('assets/tilemap-backgrounds.png')
-
-	self:resetMap();
+    self.deaths = 0
+	self:resetMap()
 end
 
 function Map:resetMap()
+	self.score = 0
+	
     TileW, TileH = 18,18
 	BgTileW, BgTileH = 24,24
 	TileTable = {
@@ -69,44 +66,35 @@ function Map:resetMap()
 		{'p1A','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C',' '  ,' '  ,'p1A','p1B','p1C', ' ', ' ', 'p1S' , ' ' , ' '  ,'p1A' , 'p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C'},
 	}
     CameraX,CameraY = 0,0
+    CamYstep = 15
 
 	local tilesetW, tilesetH = self.tileset:getWidth(), self.tileset:getHeight()
-	local bgTilesetW, bgTilesetH = self.bgTileset:getWidth(), self.bgTileset:getHeight()
 	Quads = {}
-    BgQuads = {}
-	BGTiles = {}
 
-	
     for _,info in ipairs(quadInfo) do
 		Quads[info[1]] = love.graphics.newQuad(info[2], info[3], TileW, TileH, tilesetW, tilesetH)
 	end
 
-	for _,info in ipairs(bgQuadInfo) do
-		BgQuads[info[1]] = love.graphics.newQuad(info[2], info[3], BgTileW, BgTileH, bgTilesetW, bgTilesetH)
-	end
-	
     self.world = Bump.newWorld(18)
 	self:buildTileMap();
-	MortalBoxY = 265
-	self.mortalBox = RecTrigger:new(self.world, 0, MortalBoxY, 540, 18, 'mortalBox')
+	MortalBoxY = 268
+	self.mortalBox = RecTrigger:new(self.world, 0, MortalBoxY, gameWidth, 2, 'mortalBox')
+    
+	self.leftWorldLimit = RecTrigger:new(self.world, 0, 0 , 2, gameHeight, 'leftWorldLimit')
+	self.rightWorldLimit = RecTrigger:new(self.world, gameWidth-2, 0, 2, gameHeight, 'rightWorldLimit')
+    self.topWorldLimit = RecTrigger:new(self.world, 0, 0, gameWidth, 2, 'topWorldLimit')
 
 	self.player = Player:new(self.world, 36, 226)
 end
 
 function Map:buildTileMap()
 	local tilesetW, tilesetH = self.tileset:getWidth(), self.tileset:getHeight()
-	local bgTilesetW, bgTilesetH = self.bgTileset:getWidth(), self.bgTileset:getHeight()
 	Quads = {}
-    BgQuads = {}
 	BGTiles = {}
 
 	
     for _,info in ipairs(quadInfo) do
 		Quads[info[1]] = love.graphics.newQuad(info[2], info[3], TileW, TileH, tilesetW, tilesetH)
-	end
-
-	for _,info in ipairs(bgQuadInfo) do
-		BgQuads[info[1]] = love.graphics.newQuad(info[2], info[3], BgTileW, BgTileH, bgTilesetW, bgTilesetH)
 	end
 
 	---creating tile Objects
@@ -117,15 +105,13 @@ function Map:buildTileMap()
 		  local quadID = row[columnIndex]
 		  if(quadID ~= ' ') then
 		     Tile:new(self.world, x, y, TileW, TileH, Quads[quadID], 'ground', self.tileset)
-		  else
-			table.insert(BGTiles, {self.bgTileset, BgQuads['bg1'], x, y})
 		  end
 		end
 	end
 end
 
 function Map:moveCamera()
-	CameraY = CameraY + 10
+	CameraY = CameraY + CamYstep
 end
 
 function Map:appendRandTileRow()
@@ -141,17 +127,39 @@ function Map:appendRandTileRow()
 		  local quadID = newTileTableRow[columnIndex]
 		  if(quadID ~= ' ') then
 		     Tile:new(self.world, x, y, TileW, TileH, Quads[quadID], 'ground', self.tileset)
-		  else
-			table.insert(BGTiles, {self.bgTileset, BgQuads['bg1'], x, y})
 		  end
 		end
+end
+
+function Map:moveMortalBox()
+  self.mortalBox.y =  self.mortalBox.y - CamYstep
+  self.world:update(self.mortalBox, self.mortalBox.x, self.mortalBox.y)
+
+
+  self.leftWorldLimit.y = self.leftWorldLimit.y - CamYstep
+  self.rightWorldLimit.y = self.rightWorldLimit.y -CamYstep
+  self.topWorldLimit.y = self.topWorldLimit.y - CamYstep
+
+  self.world:update(self.leftWorldLimit , 0, self.leftWorldLimit.y)
+  self.world:update(self.rightWorldLimit, gameWidth-2, self.rightWorldLimit.y)
+  self.world:update(self.topWorldLimit, 0, self.topWorldLimit.y)
+end
+
+function Map:isGameOver()
+  return self.player.isDead
+end
+
+function Map:incrementScore()
+  self.score = self.score + 1
+end
+
+function Map:incrementDeaths()
+  self.deaths = self.deaths + 1
 end
 
 function Map:update(dt, l,t,w,h)
   l,t,w,h = l or 0, t or 0, w or self.width, h or self.height
   local visibleThings, len = self.world:queryRect(l, t-CameraY,w,h)
-
-  --table.sort(visibleThings, sortByUpdateOrder)
 
   self.mortalBox:update(dt)
   for i=1, len do
@@ -161,7 +169,7 @@ end
 
 function Map:draw(drawDebug, l,t,w,h)
   --if drawDebug then bump_debug.draw(self.world, l,t,w,h) end
-
+    
   -- camera motion
 	love.graphics.translate(0, CameraY)
 
@@ -171,24 +179,18 @@ function Map:draw(drawDebug, l,t,w,h)
 
   --table.sort(visibleThings, sortByCreatedAt)
 
-  for _, bg in ipairs(BGTiles) do
-	love.graphics.draw(unpack(bg))
-  end
-
-
-
   for i=1, len do 
     visibleThings[i]:draw(drawDebug)
   end
+
+
+  love.graphics.setFont (love.graphics.newFont (10))
+  local font = love.graphics.getFont ()
+  local scoreText = love.graphics.newText(font)
+
+  scoreText:add( {{1,1,1}, "Score: " .. map.score }, 0, 0)    
+  love.graphics.draw(scoreText, 450, t-CameraY) 
 end
 
-function Map:moveMortalBox()
-  self.mortalBox.y =  self.mortalBox.y - 9
-  self.world:update(self.mortalBox, self.mortalBox.x, self.mortalBox.y)
-end
-
-function Map:isGameOver()
-  return self.player.isDead
-end
 
 return Map;
