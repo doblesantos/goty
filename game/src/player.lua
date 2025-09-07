@@ -37,8 +37,8 @@ function Player:moveColliding(dt)
 
   for i=1, len do
     local col = cols[i]
-	local isTouchingHead = col.item.y > col.other.y
-
+	local isTouchingHead = col.normal.y  == 1
+	local isTouchingFeet = col.normal.y  == -1
     local sideCol = col.normal.x == 1 or col.normal.x == -1
 
 
@@ -47,26 +47,17 @@ function Player:moveColliding(dt)
 		map:incrementDeaths()
 	end
 
-	if(col.other.type == 'ground' and self.isJumping and not isTouchingHead and not sideCol) then
+	if(col.other.type == 'ground' and self.isJumping and isTouchingFeet and not sideCol) then
 		self.isJumping = false
-		--print("antes de mover camara", self.old_y, next_y, self.y)
+        self.onGround = true
 
-		if  next_y < self.old_y  and MiddleCamY < next_y then
-		  --print("victor camaras")
-	      map:moveCamera()
-	      map:appendRandTileRow()
-	      map:moveMortalBox()
+		if  next_y < col.other.y  then
 		  map:incrementScore()
-		  self.onGround = true
-	      self.old_y = self.y
 	    end
 	elseif(col.other.type == 'ground' and not isTouchingHead) then
 		self.onGround = true
 	    self.old_y = self.y
 	end
-
-    -- self:changeVelocityByCollisionNormal(col.normal.x, col.normal.y, 0)
-    -- self:checkIfOnGround(col.normal.y)
   end
   self.x, self.y = next_x, next_y
 end
@@ -112,10 +103,27 @@ function Player:update(dt)
   self:changeVelocityByGravity(dt)
 
   self:moveColliding(dt)
+
+  self:detectedUnderTheMiddle()
+  CameraY = CameraY + (TargetCameraY - CameraY)*5*dt
+end
+
+function Player:detectedUnderTheMiddle()
+	if(self.y > MiddleCamY and not self.underTeMiddle) then
+		self.underTeMiddle = true
+	end
+    
+	if(self.y < MiddleCamY and self.underTeMiddle) then
+		self.underTeMiddle = false
+		map:moveCamera()
+		map:appendRandTileRow()
+		map:moveMortalBox()
+	end
+	
 end
 
 function Player:draw()
-	self.class.super.draw(self)
+	--self.class.super.draw(self)
 	love.graphics.draw(self.tilemap, self.quad, self.x, self.y)
 end
 

@@ -4,6 +4,7 @@ Entity = require "src/entity";
 Player = require "src/player";
 Tile = require "src/tile";
 RecTrigger = require "src/rec-trigger";
+Generator = require "src/generator";
 
 local Map = class('Map')
 
@@ -27,9 +28,27 @@ local quadInfo = {
 }
 
 
-NewTopTiles = {
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', 'b1A', 'b1B', 'b1C', ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,'b1A','b1B','b1C',' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- NewTopTiles = {
+-- 	    {' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,'b1S',' '  , ' '   , ' ' , 'b1S' ,' ' ,' '  , ' '  , 'b1S', ' ', ' '   , ' '  , 'b1S ', ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 	    {' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  , ' '   , ' ' , ' '  ,' '  ,' '  , ' '  , ' '  , ' ', ' '   , ' '  ,'b1A'  , 'b1B', 'b1C' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 	    {' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  , ' '   , ' ' , ' '  ,' '  ,' '  , ' '  , ' '  , ' ', 'b1A' , 'b1B', 'b1C' , ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 	    {' '  ,' '  ,' '  , ' ' , ' ' ,'b1A','b1B','b1C', ' ' ,' '  , ' '   , ' ' , ' '  ,' '  ,' '  , ' '  , ' '  , ' ', ' '   , ' '  , ' '   , ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 	    {' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,'b1A','b1B','b1C', ' '   , ' ' , ' '  ,' '  ,' '  , ' '  , ' '  , ' ', ' '   , ' '  , ' '   , ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' '   , ' ' , ' '  ,' '  ,' '  , 'b1S', ' '  , ' ', ' '   , ' '  , ' '   , ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- 		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  , ' '   , ' ' ,'b1S' ,' '  ,' '  , ' '  , ' '  , ' ', ' '   , ' '  , ' '   , ' '  , ' '   ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
+-- }
+
+NewTopTiles = Generator.generate{
+  rows = 10,
+  cols = 30,
+  p_trio = 0.05,              -- tríos b1A-b1B-b1C
+  p_single = 0.1,            -- bloques sueltos b1S
+  min_gap = 3,                -- hueco horizontal >= 1 celda (player 24x24 con tile 24x24)
+  ground_rows = 0,            -- suelo de 2 filas
+  clearance_from_ground = 0,  -- 1 fila libre sobre el suelo
+  min_vgap_rows = 4,
+  use_vertical_pattern = false,-- hueco vertical >= 1 fila
+  -- seed = os.time(),        -- opcional (para reproducibilidad, fija un número)
 }
 
 function Map:initialize()
@@ -43,29 +62,26 @@ function Map:resetMap()
 	
     TileW, TileH = 18,18
 	BgTileW, BgTileH = 24,24
-	TileTable = {
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' ,'b1S', ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,'b1S', ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', 'b1A', 'b1B', 'b1C', ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,'b1A','b1B','b1C',' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' ,'b1S',' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{' '  ,' '  ,' '  , ' ' ,' '  ,' '  ,' '  ,'b1S',' '  ,' '  ,' '  ,' '  ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  },
-		{'p1A','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C',' '  ,' '  ,'p1A','p1B','p1C', ' ', ' ', 'p1S' , ' ' , ' '  ,'p1A' , 'p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1B','p1C'},
-	}
+  
+	TileTable = Generator.generate{
+			rows = 18,
+			cols = 30,
+			p_trio = 0.1,              -- tríos b1A-b1B-b1C
+			p_single = 0.5,            -- bloques sueltos b1S
+			min_gap = 3,                -- hueco horizontal >= 1 celda (player 24x24 con tile 24x24)
+			ground_rows = 1,            -- suelo de 2 filas
+			ground_tile = 'p1B',
+			clearance_from_ground = 1,  -- 1 fila libre sobre el suelo
+			min_vgap_rows = 4,          -- hueco vertical >= 1 fila
+			-- seed = os.time(),        -- opcional (para reproducibilidad, fija un número)
+			}
 
+	BlankTileLine = {' '  ,' '  ,' '  , ' ' , ' ' ,' '  ,' '  ,' '  ,' '  , ' ' , ' ' , ' ' ,' '  ,' '  ,' '  , ' ', ' ', ' '   , ' ' , ' '  , ' '  , ' '  , ' ' ,' '  , ' ' , ' ' , ' ' , ' ', ' ' , ' '  }
 	OldTableSize = #TileTable
     OldRandTileIndex = nil
 
     CameraX,CameraY = 0,0
+	TargetCameraY = 0
     CamYstep = 15
 
 	MiddleCamY = gameHeight/2
@@ -113,9 +129,8 @@ function Map:buildTileMap()
 end
 
 function Map:moveCamera()
-    --print(self.player.old_y, self.player.y)
-	CamYstep = (self.player.old_y - self.player.y)
-	CameraY = CameraY + CamYstep
+	 TargetCameraY = TargetCameraY + 15
+
 end
 
 function Map:appendRandTileRow()
@@ -127,9 +142,9 @@ function Map:appendRandTileRow()
 
 		OldRandTileIndex = newRandTileIndex
 
-	    local newTileTableRow = NewTopTiles[newRandTileIndex]
-
-		-- add to table
+        local newTileTableRow = NewTopTiles[newRandTileIndex]
+		table.insert(TileTable,1, BlankTileLine)
+		table.insert(TileTable,1, BlankTileLine)
 		table.insert(TileTable,1, newTileTableRow)
 
         -- add to world phisically
@@ -137,7 +152,6 @@ function Map:appendRandTileRow()
 		  local x,y = (columnIndex-1)*TileW, (OldTableSize - #TileTable ) * TileH  
 		  local quadID = newTileTableRow[columnIndex]
 		  if(quadID ~= ' ') then
-			 print("new tile",x, y, #TileTable, OldTableSize)
 		     Tile:new(self.world, x, y, TileW, TileH, Quads[quadID], 'ground', self.tileset)
 		  end
 		end
@@ -206,7 +220,7 @@ function Map:draw(drawDebug, l,t,w,h)
   love.graphics.draw(scoreText, 450, t-CameraY) 
 
 
-  love.graphics.rectangle("fill",0, MiddleCamY, gameWidth,2);
+  ---love.graphics.rectangle("fill",0, MiddleCamY, gameWidth,2);
 end
 
 

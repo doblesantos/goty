@@ -6,7 +6,6 @@ gameWidth, gameHeight = 540, 270
 local windowWidth, windowHeight = love.window.getDesktopDimensions()
 windowWidth, windowHeight = windowWidth*.5, windowHeight*.5
 
-
 Map = require "src/map";
 
 

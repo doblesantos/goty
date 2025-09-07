@@ -13,8 +13,7 @@ end
 function Tile:update(dt)
 end
 
-function Tile:draw()
-  love.graphics.draw(self.tileset, self.quad, self.x, self.y)
+function Tile:draw()   love.graphics.draw(self.tileset, self.quad, self.x, self.y)
 end
 
 function Tile:destroy()

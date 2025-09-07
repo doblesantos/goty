@@ -12,9 +12,9 @@ function RecTrigger:update(dt)
 end
 
 function RecTrigger:draw()
-	love.graphics.setColor(1, 0, 0, 1)
-	love.graphics.rectangle( "fill", self.x, self.y, self.width, self.height )
-	love.graphics.setColor(1, 1, 1, 1)
+	-- love.graphics.setColor(1, 0, 0, 1)
+	-- love.graphics.rectangle( "fill", self.x, self.y, self.width, self.height )
+	-- love.graphics.setColor(1, 1, 1, 1)
 end
 
 function RecTrigger:destroy()
