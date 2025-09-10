@@ -1,1 +1,2 @@
-Small gamejam game
+Love2d Small gamejam game
+
